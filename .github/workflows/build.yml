@@ -1,0 +1,41 @@
+name: .NET Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        # This fixes the missing Rivers project error
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+
+    - name: Restore Packages
+      # This performs the 'nuget restore' seen in your logs
+      run: nuget restore OldRod.sln
+
+    - name: Build Solution
+      # Builds OldRod.exe in Release mode
+      run: msbuild OldRod.sln /p:Configuration=Release /p:Platform="Any CPU"
+
+    - name: Upload Artifact
+      # This saves the final .exe so you can download it
+      uses: actions/upload-artifact@v4
+      with:
+        name: OldRod-Build
+        path: src/OldRod/bin/Release/net471/
+        
